@@ -30,7 +30,7 @@ export function StoryWriter() {
         setIsLoading(true);
         try {
             const input: GenerateNextSentenceInput = {
-                word: 'once',
+                word: 'once upon a time',
                 storySoFar: '',
                 mood: 'Dreamy',
             };
@@ -127,8 +127,8 @@ export function StoryWriter() {
         <h2 className="text-lg text-muted-foreground mt-2 italic">The story unfolds...</h2>
       </header>
 
-      <main className="flex-grow flex flex-col items-center w-full max-w-4xl mx-auto min-h-0 px-4 sm:px-6 md:px-8 pb-4 sm:pb-6 md:pb-8">
-        <div id="story-output" className="w-full flex-grow relative mb-6 rounded-lg border border-border bg-secondary/50 shadow-lg min-h-0">
+      <main className="flex-grow grid grid-rows-[1fr_auto_auto] gap-6 w-full max-w-4xl mx-auto min-h-0 px-4 sm:px-6 md:px-8 pb-4 sm:pb-6 md:pb-8">
+        <div id="story-output" className="w-full relative rounded-lg border border-border bg-card shadow-lg min-h-0">
           <ScrollArea className="absolute inset-0">
             <div className="p-6 md:p-8">
               {isLoading && story.length === 0 ? (
@@ -147,7 +147,7 @@ export function StoryWriter() {
           </ScrollArea>
         </div>
 
-        <form onSubmit={handleSubmit} className="w-full space-y-4 shrink-0">
+        <form onSubmit={handleSubmit} className="w-full space-y-4">
           <div className="flex flex-col sm:flex-row gap-4">
             <Input
               id="wordInput"
@@ -176,7 +176,7 @@ export function StoryWriter() {
           </div>
         </form>
 
-        <footer className="mt-8 flex gap-4 shrink-0">
+        <footer className="flex gap-4 justify-center">
           <Button id="saveStory" variant="outline" onClick={handleSave}>
             <Save className="mr-2 h-4 w-4" /> Save Chapter
           </Button>
