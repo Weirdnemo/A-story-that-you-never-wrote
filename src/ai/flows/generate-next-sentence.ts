@@ -56,13 +56,14 @@ const generateNextSentenceFlow = ai.defineFlow(
   },
   async input => {
     const { apiKey, ...promptInput } = input;
-    const overrides: { model?: any } = {};
+    const key = apiKey || process.env.GOOGLE_API_KEY;
 
-    if (apiKey) {
-      overrides.model = googleAI.model('gemini-1.5-flash-latest', { apiKey });
+    if (!key) {
+      throw new Error("The Google AI API key is missing. Please provide it in the app's settings.");
     }
 
-    const {output} = await prompt(promptInput, overrides);
+    const model = googleAI.model('gemini-1.5-flash-latest', { apiKey: key });
+    const {output} = await prompt(promptInput, { model });
     return output!;
   }
 );

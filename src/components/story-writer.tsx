@@ -42,6 +42,9 @@ export function StoryWriter() {
     const storedApiKey = localStorage.getItem('user-api-key') || '';
     setApiKey(storedApiKey);
     setTempApiKey(storedApiKey);
+    if (!storedApiKey) {
+      setIsApiDialogOpen(true);
+    }
   }, []);
 
   // Fetch initial sentence once API key is loaded
@@ -65,16 +68,20 @@ export function StoryWriter() {
             toast({
               variant: "destructive",
               title: "Failed to start the story",
-              description: "There was a problem with the AI. Please check your API key or try again.",
+              description: "There was a problem with the AI. Your API key might be invalid. Please check it and try again.",
             })
+            setStory(["Welcome! Please provide a valid Google AI API key in the settings (top right) to begin your story."]);
             console.error(err);
         } finally {
             setIsLoading(false);
         }
     };
     
-    if (story.length === 0) {
+    if (story.length === 0 && apiKey) {
         getInitialSentence();
+    } else if (!apiKey) {
+      setIsLoading(false);
+      setStory(["Welcome! Please provide your Google AI API key in the settings (top right) to begin your story."]);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [apiKey]);
@@ -88,18 +95,36 @@ export function StoryWriter() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!word.trim() || isLoading) return;
+    
+    if (!apiKey) {
+      toast({
+          variant: "destructive",
+          title: "API Key Missing",
+          description: "Please enter your API key in the settings before continuing.",
+      });
+      setIsApiDialogOpen(true);
+      return;
+    }
 
     setIsLoading(true);
+
+    const isWelcomeMessage = story.length > 0 && story[0].startsWith("Welcome!");
+    const currentStory = isWelcomeMessage ? '' : story.join(' ');
+
     try {
         const input: GenerateNextSentenceInput = {
             word,
-            storySoFar: story.join(' '),
+            storySoFar: currentStory,
             mood,
-            apiKey: apiKey || '',
+            apiKey: apiKey,
         };
         const result = await generateNextSentence(input);
         if (result.nextSentence) {
-            setStory(prev => [...prev, result.nextSentence]);
+            if (isWelcomeMessage) {
+              setStory([result.nextSentence]);
+            } else {
+              setStory(prev => [...prev, result.nextSentence]);
+            }
             setWord('');
         }
     } catch (err) {
@@ -155,6 +180,9 @@ export function StoryWriter() {
       title: "API Key Saved",
       description: "Your API key has been saved locally.",
     });
+    if (story.length > 0 && story[0].startsWith("Welcome!")) {
+      setStory([]);
+    }
   };
 
   return (
