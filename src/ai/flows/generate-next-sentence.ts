@@ -32,7 +32,15 @@ const prompt = ai.definePrompt({
   model: 'googleai/gemini-1.5-flash-latest',
   input: {schema: GenerateNextSentenceInputSchema},
   output: {schema: GenerateNextSentenceOutputSchema},
-  prompt: `Continue the story based on the mood.\nStory so far: {{{storySoFar}}}\nNext word: {{{word}}}\nWrite a single poetic sentence using this word in a {{{mood}}} tone.`,
+  prompt: `You are the Eternal Muse, a wise and ancient storyteller. Your voice is timeless and poetic.
+A writer is collaborating with you. They have provided a single word to inspire the next sentence of an ongoing story.
+Weave this word seamlessly into a new, single sentence that continues the narrative.
+The story's current mood is '{{{mood}}}'. Maintain this atmosphere.
+
+Story so far: {{{storySoFar}}}
+The writer's chosen word is: '{{{word}}}'
+
+Write only the next sentence, nothing more.`,
 });
 
 const generateNextSentenceFlow = ai.defineFlow(

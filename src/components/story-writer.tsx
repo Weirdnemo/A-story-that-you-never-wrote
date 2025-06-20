@@ -121,22 +121,23 @@ export function StoryWriter() {
   };
 
   return (
-    <div className="flex flex-col h-screen bg-background text-foreground p-4 sm:p-6 md:p-8 font-code">
+    <div className="flex flex-col h-screen bg-background text-foreground p-4 sm:p-6 md:p-8">
       <header className="text-center mb-4 md:mb-8">
-        <h2 className="text-xl text-muted-foreground tracking-wider">I already started writing for you…</h2>
+        <h1 className="text-4xl font-headline font-bold text-primary">Eternal Muse</h1>
+        <h2 className="text-lg text-muted-foreground mt-2">The story unfolds...</h2>
       </header>
 
       <main className="flex-grow flex flex-col items-center w-full max-w-4xl mx-auto min-h-0">
-        <div id="story-output" className="w-full flex-grow relative mb-6 rounded-md border border-border/50">
+        <div id="story-output" className="w-full flex-grow relative mb-6 rounded-md border border-input bg-zinc-900/20 shadow-inner">
           <ScrollArea className="absolute inset-0">
-            <div className="p-4 md:p-6">
+            <div className="p-6 md:p-8">
               {isLoading && story.length === 0 ? (
                 <div className="flex items-center justify-center h-full">
                   <Loader2 className="h-8 w-8 animate-spin text-primary" />
                 </div>
               ) : (
                 story.map((sentence, index) => (
-                  <p key={index} className="mb-4 animate-in fade-in duration-1000">
+                  <p key={index} className="mb-6 text-lg leading-relaxed animate-in fade-in duration-1000">
                     {sentence}
                   </p>
                 ))
@@ -153,7 +154,7 @@ export function StoryWriter() {
               type="text"
               value={word}
               onChange={(e) => setWord(e.target.value.split(' ')[0])}
-              placeholder="One word..."
+              placeholder="Offer a word..."
               className="flex-grow text-base"
               disabled={isLoading}
               required
