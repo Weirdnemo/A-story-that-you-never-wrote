@@ -109,7 +109,7 @@ export function StoryWriter() {
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = 'eternal-muse-story.txt';
+    link.download = 'the-story-you-never-wrote.txt';
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -121,10 +121,10 @@ export function StoryWriter() {
   };
 
   return (
-    <div className="flex flex-col h-screen bg-background text-foreground p-4 sm:p-6 md:p-8">
-      <header className="text-center mb-4 md:mb-8">
-        <h1 className="text-4xl font-headline font-bold text-primary">Eternal Muse</h1>
-        <h2 className="text-lg text-muted-foreground mt-2">The story unfolds...</h2>
+    <div className="flex flex-col h-screen bg-background text-foreground p-4 sm:p-6 md:p-8 font-serif">
+      <header className="text-center mb-4 md:mb-8 border-b-2 border-primary/20 pb-4">
+        <h1 className="text-5xl font-playfair-display font-bold text-primary tracking-wider">The story you never wrote</h1>
+        <h2 className="text-lg text-muted-foreground mt-2 italic">The story unfolds...</h2>
       </header>
 
       <main className="flex-grow flex flex-col items-center w-full max-w-4xl mx-auto min-h-0">
