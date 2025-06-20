@@ -1,13 +1,7 @@
 import type {Metadata} from 'next';
 import './globals.css';
 import { Toaster } from "@/components/ui/toaster"
-import { EB_Garamond, Source_Code_Pro } from 'next/font/google';
-
-const garamond = EB_Garamond({
-  subsets: ['latin'],
-  display: 'swap',
-  variable: '--font-garamond',
-});
+import { Source_Code_Pro } from 'next/font/google';
 
 const sourceCodePro = Source_Code_Pro({
   subsets: ['latin'],
@@ -26,7 +20,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`dark ${garamond.variable} ${sourceCodePro.variable}`}>
+    <html lang="en" className={`dark ${sourceCodePro.variable}`}>
       <head />
       <body className="font-body antialiased">
         {children}
