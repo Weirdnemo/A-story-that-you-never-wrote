@@ -128,7 +128,7 @@ export function StoryWriter() {
       </header>
 
       <main className="flex-grow flex flex-col items-center w-full max-w-4xl mx-auto min-h-0">
-        <div id="story-output" className="w-full flex-grow relative mb-6 rounded-md border border-input bg-secondary shadow-inner">
+        <div id="story-output" className="w-full flex-grow relative mb-6 rounded-lg border border-border bg-secondary/50 shadow-lg">
           <ScrollArea className="absolute inset-0">
             <div className="p-6 md:p-8">
               {isLoading && story.length === 0 ? (
@@ -137,7 +137,7 @@ export function StoryWriter() {
                 </div>
               ) : (
                 story.map((sentence, index) => (
-                  <p key={index} className="mb-6 text-lg leading-relaxed animate-in fade-in duration-1000">
+                  <p key={index} className="mb-6 text-lg leading-loose tracking-wide animate-in fade-in duration-1000">
                     {sentence}
                   </p>
                 ))
