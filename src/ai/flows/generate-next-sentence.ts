@@ -29,6 +29,7 @@ export async function generateNextSentence(input: GenerateNextSentenceInput): Pr
 
 const prompt = ai.definePrompt({
   name: 'generateNextSentencePrompt',
+  model: 'googleai/gemini-1.5-flash-latest',
   input: {schema: GenerateNextSentenceInputSchema},
   output: {schema: GenerateNextSentenceOutputSchema},
   prompt: `Continue the story based on the mood.\nStory so far: {{{storySoFar}}}\nNext word: {{{word}}}\nWrite a single poetic sentence using this word in a {{{mood}}} tone.`,
