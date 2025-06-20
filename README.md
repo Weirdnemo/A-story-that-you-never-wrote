@@ -6,7 +6,7 @@ This is an AI-powered collaborative storytelling application built with Next.js 
 
 ## How it works
 
-1.  **Set your API Key**: The app requires a Google AI API key to function. You can add your key in the settings menu (the gear icon).
+1.  **Set up**: Create a `.env` file in the root of the project and add your Google AI API key: `GOOGLE_API_KEY=your_key_here`.
 2.  **Start Writing**: The application begins a story for you.
 3.  **Provide a Word**: You offer a single word to inspire the next part of the narrative.
 4.  **Select a Mood**: Choose from 'Dreamy', 'Dark', or 'Motivational' to guide the tone.
