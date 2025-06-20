@@ -9,12 +9,14 @@
  */
 
 import {ai} from '@/ai/genkit';
+import { googleAI } from '@genkit-ai/googleai';
 import {z} from 'genkit';
 
 const GenerateNextSentenceInputSchema = z.object({
   word: z.string().describe('The word to incorporate into the next sentence.'),
   storySoFar: z.string().describe('The story so far.'),
   mood: z.enum(['Dreamy', 'Dark', 'Motivational']).describe('The mood of the story.'),
+  apiKey: z.string().optional().describe('An optional Google AI API key.'),
 });
 export type GenerateNextSentenceInput = z.infer<typeof GenerateNextSentenceInputSchema>;
 
@@ -27,10 +29,12 @@ export async function generateNextSentence(input: GenerateNextSentenceInput): Pr
   return generateNextSentenceFlow(input);
 }
 
+const PromptInputSchema = GenerateNextSentenceInputSchema.omit({apiKey: true});
+
 const prompt = ai.definePrompt({
   name: 'generateNextSentencePrompt',
   model: 'googleai/gemini-1.5-flash-latest',
-  input: {schema: GenerateNextSentenceInputSchema},
+  input: {schema: PromptInputSchema},
   output: {schema: GenerateNextSentenceOutputSchema},
   prompt: `You are a masterful storyteller, a weaver of words that resonate with depth and emotion. Your prose is elegant, literary, and evocative.
 A writer is collaborating with you, seeking a sentence to continue their narrative. They have provided a single, resonant word.
@@ -51,7 +55,14 @@ const generateNextSentenceFlow = ai.defineFlow(
     outputSchema: GenerateNextSentenceOutputSchema,
   },
   async input => {
-    const {output} = await prompt(input);
+    const { apiKey, ...promptInput } = input;
+    const overrides: { model?: any } = {};
+
+    if (apiKey) {
+      overrides.model = googleAI.model('gemini-1.5-flash-latest', { apiKey });
+    }
+
+    const {output} = await prompt(promptInput, overrides);
     return output!;
   }
 );

@@ -6,8 +6,18 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { generateNextSentence } from '@/ai/flows/generate-next-sentence';
 import type { GenerateNextSentenceInput } from '@/ai/flows/generate-next-sentence';
-import { Save, Download, Loader2, Sparkles } from 'lucide-react';
+import { Save, Download, Loader2, Sparkles, Settings } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
 
 type Mood = 'Dreamy' | 'Dark' | 'Motivational';
 
@@ -16,6 +26,9 @@ export function StoryWriter() {
   const [word, setWord] = useState('');
   const [mood, setMood] = useState<Mood>('Dreamy');
   const [isLoading, setIsLoading] = useState(true);
+  const [apiKey, setApiKey] = useState<string | null>(null);
+  const [isApiDialogOpen, setIsApiDialogOpen] = useState(false);
+  const [tempApiKey, setTempApiKey] = useState('');
 
   const storyEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
@@ -24,7 +37,17 @@ export function StoryWriter() {
     storyEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
+  // Load API Key from localStorage
   useEffect(() => {
+    const storedApiKey = localStorage.getItem('user-api-key') || '';
+    setApiKey(storedApiKey);
+    setTempApiKey(storedApiKey);
+  }, []);
+
+  // Fetch initial sentence once API key is loaded
+  useEffect(() => {
+    if (apiKey === null) return; // Wait for key to be loaded
+
     const getInitialSentence = async () => {
         setIsLoading(true);
         try {
@@ -32,6 +55,7 @@ export function StoryWriter() {
                 word: 'once upon a time',
                 storySoFar: '',
                 mood: 'Dreamy',
+                apiKey: apiKey,
             };
             const result = await generateNextSentence(input);
             if (result.nextSentence) {
@@ -41,16 +65,19 @@ export function StoryWriter() {
             toast({
               variant: "destructive",
               title: "Failed to start the story",
-              description: "There was a problem with the AI. Please refresh the page.",
+              description: "There was a problem with the AI. Please check your API key or try again.",
             })
             console.error(err);
         } finally {
             setIsLoading(false);
         }
     };
-    getInitialSentence();
+    
+    if (story.length === 0) {
+        getInitialSentence();
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [apiKey]);
 
   useEffect(() => {
     if (story.length > 1) {
@@ -68,6 +95,7 @@ export function StoryWriter() {
             word,
             storySoFar: story.join(' '),
             mood,
+            apiKey: apiKey || '',
         };
         const result = await generateNextSentence(input);
         if (result.nextSentence) {
@@ -78,7 +106,7 @@ export function StoryWriter() {
         toast({
           variant: "destructive",
           title: "Failed to continue the story",
-          description: "There was a problem with the AI. Please try again.",
+          description: "There was a problem with the AI. Please check your API key and try again.",
         })
         console.error(err);
     } finally {
@@ -119,11 +147,57 @@ export function StoryWriter() {
     });
   };
 
+  const handleSaveApiKey = () => {
+    setApiKey(tempApiKey);
+    localStorage.setItem('user-api-key', tempApiKey);
+    setIsApiDialogOpen(false);
+    toast({
+      title: "API Key Saved",
+      description: "Your API key has been saved locally.",
+    });
+  };
+
   return (
     <div className="flex flex-col h-screen bg-background text-foreground font-body">
-      <header className="flex-shrink-0 border-b border-border/20 px-6 sm:px-8 py-4">
-        <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground/90">The story you never wrote</h1>
-        <h2 className="text-sm text-muted-foreground italic mt-1">An eternal collaboration</h2>
+      <header className="flex-shrink-0 border-b border-border/20 px-6 sm:px-8 py-4 flex justify-between items-center">
+        <div>
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground/90">The story you never wrote</h1>
+          <h2 className="text-sm text-muted-foreground italic mt-1">An eternal collaboration</h2>
+        </div>
+        <Dialog open={isApiDialogOpen} onOpenChange={setIsApiDialogOpen}>
+            <DialogTrigger asChild>
+                <Button variant="ghost" size="icon">
+                    <Settings className="h-5 w-5" />
+                    <span className="sr-only">API Key Settings</span>
+                </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[425px]">
+                <DialogHeader>
+                    <DialogTitle>API Key Configuration</DialogTitle>
+                    <DialogDescription>
+                        Enter your Google AI API key here. It will be saved in your browser's local storage and will not be stored on our servers.
+                    </DialogDescription>
+                </DialogHeader>
+                <div className="grid gap-4 py-4">
+                    <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="apiKeyInput" className="text-right">
+                            API Key
+                        </Label>
+                        <Input
+                            id="apiKeyInput"
+                            type="password"
+                            value={tempApiKey}
+                            onChange={(e) => setTempApiKey(e.target.value)}
+                            className="col-span-3"
+                            placeholder="Your Google AI API Key"
+                        />
+                    </div>
+                </div>
+                <DialogFooter>
+                    <Button type="submit" onClick={handleSaveApiKey}>Save key</Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
       </header>
 
       <main className="flex-grow w-full max-w-4xl mx-auto px-4 sm:px-8 py-12 overflow-y-auto">
@@ -169,7 +243,7 @@ export function StoryWriter() {
                   </SelectContent>
                 </Select>
                 <Button id="submitWord" type="submit" className="w-full sm:w-auto" disabled={isLoading || !word.trim()}>
-                  {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles />}
+                  {isLoading && story.length > 0 ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles />}
                   Continue
                 </Button>
               </div>
