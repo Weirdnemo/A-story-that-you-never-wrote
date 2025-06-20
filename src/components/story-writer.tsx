@@ -128,7 +128,7 @@ export function StoryWriter() {
       </header>
 
       <main className="flex-grow flex flex-col items-center w-full max-w-4xl mx-auto min-h-0">
-        <div id="story-output" className="w-full flex-grow relative mb-6 rounded-md border border-input bg-zinc-900/20 shadow-inner">
+        <div id="story-output" className="w-full flex-grow relative mb-6 rounded-md border border-input bg-secondary shadow-inner">
           <ScrollArea className="absolute inset-0">
             <div className="p-6 md:p-8">
               {isLoading && story.length === 0 ? (
