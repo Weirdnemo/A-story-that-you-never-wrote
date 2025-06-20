@@ -6,7 +6,6 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { generateNextSentence } from '@/ai/flows/generate-next-sentence';
 import type { GenerateNextSentenceInput } from '@/ai/flows/generate-next-sentence';
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { Save, Download, Loader2, Sparkles } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 
@@ -121,33 +120,29 @@ export function StoryWriter() {
   };
 
   return (
-    <div className="flex flex-col h-screen bg-background text-foreground font-body">
+    <div className="min-h-screen bg-background text-foreground font-body">
       <header className="flex-shrink-0 border-b border-border/20 px-6 sm:px-8 py-4">
         <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground/90">The story you never wrote</h1>
         <h2 className="text-sm text-muted-foreground italic mt-1">An eternal collaboration</h2>
       </header>
 
-      <main className="flex-grow grid grid-rows-[1fr_auto] gap-4 w-full max-w-4xl mx-auto min-h-0 px-4 sm:px-8 pb-4">
-        <div id="story-output" className="w-full relative min-h-0">
-          <ScrollArea className="absolute inset-0 pr-4">
-            <div className="p-4 text-lg/relaxed tracking-wide space-y-6">
-              {isLoading && story.length === 0 ? (
-                <div className="flex items-center justify-center h-full">
-                  <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                </div>
-              ) : (
-                story.map((sentence, index) => (
-                  <p key={index} className="animate-in fade-in duration-1000">
-                    {sentence}
-                  </p>
-                ))
-              )}
-              <div ref={storyEndRef} />
+      <main className="w-full max-w-4xl mx-auto px-4 sm:px-8 py-12">
+        <div id="story-output" className="w-full space-y-6 text-lg/relaxed tracking-wide">
+          {isLoading && story.length === 0 ? (
+            <div className="flex items-center justify-center min-h-[40vh]">
+              <Loader2 className="h-8 w-8 animate-spin text-primary" />
             </div>
-          </ScrollArea>
+          ) : (
+            story.map((sentence, index) => (
+              <p key={index} className="animate-in fade-in duration-1000">
+                {sentence}
+              </p>
+            ))
+          )}
+          <div ref={storyEndRef} />
         </div>
 
-        <div className="space-y-4 pt-2">
+        <div className="space-y-4 pt-12">
           <form onSubmit={handleSubmit} className="w-full space-y-4">
             <div className="flex flex-col sm:flex-row gap-4 items-center">
               <Input
