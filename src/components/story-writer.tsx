@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { generateNextSentence } from '@/ai/flows/generate-next-sentence';
 import type { GenerateNextSentenceInput } from '@/ai/flows/generate-next-sentence';
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Save, Download, Loader2 } from 'lucide-react';
+import { Save, Download, Loader2, Sparkles } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 
 type Mood = 'Dreamy' | 'Dark' | 'Motivational';
@@ -122,22 +122,22 @@ export function StoryWriter() {
 
   return (
     <div className="flex flex-col h-screen bg-background text-foreground font-body">
-      <header className="text-center shrink-0 px-4 sm:px-6 md:px-8 pt-4 sm:pt-6 md:pt-8 mb-4 md:mb-8 border-b-2 border-primary/20 pb-4">
-        <h1 className="text-5xl font-playfair-display font-bold text-primary tracking-wider">The story you never wrote</h1>
-        <h2 className="text-lg text-muted-foreground mt-2 italic">The story unfolds...</h2>
+      <header className="flex-shrink-0 border-b border-border/20 px-6 sm:px-8 py-4">
+        <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground/90">The story you never wrote</h1>
+        <h2 className="text-sm text-muted-foreground italic mt-1">An eternal collaboration</h2>
       </header>
 
-      <main className="flex-grow grid grid-rows-[1fr_auto_auto] gap-6 w-full max-w-4xl mx-auto min-h-0 px-4 sm:px-6 md:px-8 pb-4 sm:pb-6 md:pb-8">
-        <div id="story-output" className="w-full relative rounded-lg border border-border bg-card shadow-lg min-h-0">
-          <ScrollArea className="absolute inset-0">
-            <div className="p-6 md:p-8">
+      <main className="flex-grow grid grid-rows-[1fr_auto] gap-4 w-full max-w-4xl mx-auto min-h-0 px-4 sm:px-8 pb-4">
+        <div id="story-output" className="w-full relative min-h-0">
+          <ScrollArea className="absolute inset-0 pr-4">
+            <div className="p-4 text-lg/relaxed tracking-wide space-y-6">
               {isLoading && story.length === 0 ? (
                 <div className="flex items-center justify-center h-full">
                   <Loader2 className="h-8 w-8 animate-spin text-primary" />
                 </div>
               ) : (
                 story.map((sentence, index) => (
-                  <p key={index} className="mb-6 text-lg leading-loose tracking-wide animate-in fade-in duration-1000">
+                  <p key={index} className="animate-in fade-in duration-1000">
                     {sentence}
                   </p>
                 ))
@@ -147,43 +147,47 @@ export function StoryWriter() {
           </ScrollArea>
         </div>
 
-        <form onSubmit={handleSubmit} className="w-full space-y-4">
-          <div className="flex flex-col sm:flex-row gap-4">
-            <Input
-              id="wordInput"
-              type="text"
-              value={word}
-              onChange={(e) => setWord(e.target.value.split(' ')[0])}
-              placeholder="Offer a word..."
-              className="flex-grow text-base"
-              disabled={isLoading}
-              required
-            />
-            <Select value={mood} onValueChange={(value: Mood) => setMood(value)} disabled={isLoading}>
-              <SelectTrigger id="moodSelector" className="w-full sm:w-[180px]">
-                <SelectValue placeholder="Select mood" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="Dreamy">Dreamy</SelectItem>
-                <SelectItem value="Dark">Dark</SelectItem>
-                <SelectItem value="Motivational">Motivational</SelectItem>
-              </SelectContent>
-            </Select>
-            <Button id="submitWord" type="submit" className="w-full sm:w-auto" disabled={isLoading || !word.trim()}>
-              {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-              Continue
-            </Button>
-          </div>
-        </form>
+        <div className="space-y-4 pt-2">
+          <form onSubmit={handleSubmit} className="w-full space-y-4">
+            <div className="flex flex-col sm:flex-row gap-4 items-center">
+              <Input
+                id="wordInput"
+                type="text"
+                value={word}
+                onChange={(e) => setWord(e.target.value.split(' ')[0])}
+                placeholder="Offer a single word..."
+                className="flex-grow text-base bg-transparent border-0 border-b rounded-none border-border/50 focus-visible:ring-0 focus-visible:ring-offset-0 focus:border-primary transition-colors"
+                disabled={isLoading}
+                required
+              />
+              <div className="flex w-full sm:w-auto gap-4">
+                <Select value={mood} onValueChange={(value: Mood) => setMood(value)} disabled={isLoading}>
+                  <SelectTrigger id="moodSelector" className="w-full sm:w-[180px]">
+                    <SelectValue placeholder="Select mood" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Dreamy">Dreamy</SelectItem>
+                    <SelectItem value="Dark">Dark</SelectItem>
+                    <SelectItem value="Motivational">Motivational</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Button id="submitWord" type="submit" className="w-full sm:w-auto" disabled={isLoading || !word.trim()}>
+                  {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles />}
+                  Continue
+                </Button>
+              </div>
+            </div>
+          </form>
 
-        <footer className="flex gap-4 justify-center">
-          <Button id="saveStory" variant="outline" onClick={handleSave}>
-            <Save className="mr-2 h-4 w-4" /> Save Chapter
-          </Button>
-          <Button id="exportStory" variant="outline" onClick={handleExport}>
-            <Download className="mr-2 h-4 w-4" /> Export to .txt
-          </Button>
-        </footer>
+          <footer className="flex gap-4 justify-center items-center pt-2">
+            <Button id="saveStory" variant="ghost" size="sm" onClick={handleSave}>
+              <Save className="mr-2 h-4 w-4" /> Save
+            </Button>
+            <Button id="exportStory" variant="ghost" size="sm" onClick={handleExport}>
+              <Download className="mr-2 h-4 w-4" /> Export
+            </Button>
+          </footer>
+        </div>
       </main>
     </div>
   );
