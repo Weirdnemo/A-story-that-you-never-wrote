@@ -25,6 +25,9 @@ export default function RootLayout({
       <body className="font-body antialiased">
         {children}
         <Toaster />
+        <footer className="relative w-full text-center py-4 text-muted-foreground text-sm">
+          made by weirdnemo 🤍
+        </footer>
       </body>
     </html>
   );
