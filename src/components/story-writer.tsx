@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useRef } from 'react';
@@ -6,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { generateNextSentence } from '@/ai/flows/generate-next-sentence';
 import type { GenerateNextSentenceInput } from '@/ai/flows/generate-next-sentence';
-import { Save, Download, Loader2, Sparkles, Settings } from 'lucide-react';
+import { Save, Download, Loader2, Sparkles, Settings, KeyRound } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import {
   Dialog,
@@ -25,8 +26,9 @@ export function StoryWriter() {
   const [story, setStory] = useState<string[]>([]);
   const [word, setWord] = useState('');
   const [mood, setMood] = useState<Mood>('Dreamy');
-  const [isLoading, setIsLoading] = useState(true);
-  const [apiKey, setApiKey] = useState<string | null>(null);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [appStatus, setAppStatus] = useState<'loading' | 'needs_key' | 'ready'>('loading');
+  const [apiKey, setApiKey] = useState('');
   const [isApiDialogOpen, setIsApiDialogOpen] = useState(false);
   const [tempApiKey, setTempApiKey] = useState('');
 
@@ -37,22 +39,25 @@ export function StoryWriter() {
     storyEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
-  // Load API Key from localStorage
+  // On mount, check for API key and set initial status
   useEffect(() => {
     const storedApiKey = localStorage.getItem('user-api-key') || '';
-    setApiKey(storedApiKey);
     setTempApiKey(storedApiKey);
-    if (!storedApiKey) {
+    if (storedApiKey) {
+      setApiKey(storedApiKey);
+      setAppStatus('ready');
+    } else {
+      setAppStatus('needs_key');
       setIsApiDialogOpen(true);
     }
   }, []);
 
-  // Fetch initial sentence once API key is loaded
+  // Fetch initial sentence when app is ready
   useEffect(() => {
-    if (apiKey === null) return; // Wait for key to be loaded
+    if (appStatus !== 'ready' || story.length > 0 || !apiKey) return;
 
     const getInitialSentence = async () => {
-        setIsLoading(true);
+        setIsGenerating(true);
         try {
             const input: GenerateNextSentenceInput = {
                 word: 'once upon a time',
@@ -69,22 +74,18 @@ export function StoryWriter() {
               variant: "destructive",
               title: "Failed to start the story",
               description: "There was a problem with the AI. Your API key might be invalid. Please check it and try again.",
-            })
-            setStory(["Welcome! Please provide a valid Google AI API key in the settings (top right) to begin your story."]);
+            });
+            setAppStatus('needs_key'); // Revert status if key is bad
+            setIsApiDialogOpen(true);
             console.error(err);
         } finally {
-            setIsLoading(false);
+            setIsGenerating(false);
         }
     };
     
-    if (story.length === 0 && apiKey) {
-        getInitialSentence();
-    } else if (!apiKey) {
-      setIsLoading(false);
-      setStory(["Welcome! Please provide your Google AI API key in the settings (top right) to begin your story."]);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [apiKey]);
+    getInitialSentence();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [appStatus, apiKey]);
 
   useEffect(() => {
     if (story.length > 1) {
@@ -94,9 +95,9 @@ export function StoryWriter() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!word.trim() || isLoading) return;
+    if (!word.trim() || isGenerating) return;
     
-    if (!apiKey) {
+    if (appStatus === 'needs_key' || !apiKey) {
       toast({
           variant: "destructive",
           title: "API Key Missing",
@@ -106,10 +107,8 @@ export function StoryWriter() {
       return;
     }
 
-    setIsLoading(true);
-
-    const isWelcomeMessage = story.length > 0 && story[0].startsWith("Welcome!");
-    const currentStory = isWelcomeMessage ? '' : story.join(' ');
+    setIsGenerating(true);
+    const currentStory = story.join(' ');
 
     try {
         const input: GenerateNextSentenceInput = {
@@ -120,11 +119,7 @@ export function StoryWriter() {
         };
         const result = await generateNextSentence(input);
         if (result.nextSentence) {
-            if (isWelcomeMessage) {
-              setStory([result.nextSentence]);
-            } else {
-              setStory(prev => [...prev, result.nextSentence]);
-            }
+            setStory(prev => [...prev, result.nextSentence]);
             setWord('');
         }
     } catch (err) {
@@ -135,12 +130,11 @@ export function StoryWriter() {
         })
         console.error(err);
     } finally {
-        setIsLoading(false);
+        setIsGenerating(false);
     }
   };
 
   const handleSave = () => {
-    // Note: Firestore saving logic is not implemented as Firebase config is not available.
     toast({
       title: "Save Chapter",
       description: "This feature is not yet implemented.",
@@ -173,15 +167,22 @@ export function StoryWriter() {
   };
 
   const handleSaveApiKey = () => {
-    setApiKey(tempApiKey);
-    localStorage.setItem('user-api-key', tempApiKey);
-    setIsApiDialogOpen(false);
-    toast({
-      title: "API Key Saved",
-      description: "Your API key has been saved locally.",
-    });
-    if (story.length > 0 && story[0].startsWith("Welcome!")) {
-      setStory([]);
+    if (tempApiKey) {
+        setApiKey(tempApiKey);
+        localStorage.setItem('user-api-key', tempApiKey);
+        setIsApiDialogOpen(false);
+        setAppStatus('ready');
+        setStory([]); // Clear story to trigger re-fetch of initial sentence
+        toast({
+          title: "API Key Saved",
+          description: "Your API key has been saved. Starting a new story...",
+        });
+    } else {
+        toast({
+            variant: "destructive",
+            title: "API Key Empty",
+            description: "Please enter a valid API key.",
+        });
     }
   };
 
@@ -229,20 +230,40 @@ export function StoryWriter() {
       </header>
 
       <main className="flex-grow w-full max-w-4xl mx-auto px-4 sm:px-8 py-12 overflow-y-auto">
-        <div id="story-output" className="w-full space-y-6 text-lg/relaxed tracking-wide">
-          {isLoading && story.length === 0 ? (
-            <div className="flex items-center justify-center min-h-[40vh]">
+        {appStatus === 'loading' && (
+             <div className="flex items-center justify-center min-h-[40vh]">
               <Loader2 className="h-8 w-8 animate-spin text-primary" />
             </div>
-          ) : (
-            story.map((sentence, index) => (
-              <p key={index} className="animate-in fade-in duration-1000">
-                {sentence}
-              </p>
-            ))
-          )}
-          <div ref={storyEndRef} />
-        </div>
+        )}
+        {appStatus === 'needs_key' && (
+            <div className="flex flex-col items-center justify-center min-h-[40vh] text-center">
+                <KeyRound className="h-12 w-12 text-muted-foreground mb-4" />
+                <h3 className="text-xl font-semibold mb-2">API Key Required</h3>
+                <p className="text-muted-foreground max-w-md">
+                    To begin your creative journey, please provide your Google AI API key.
+                </p>
+                <Button onClick={() => setIsApiDialogOpen(true)} className="mt-6">
+                    <Settings className="mr-2 h-4 w-4" />
+                    Open Settings
+                </Button>
+            </div>
+        )}
+        {appStatus === 'ready' && (
+          <div id="story-output" className="w-full space-y-6 text-lg/relaxed tracking-wide">
+            {isGenerating && story.length === 0 ? (
+              <div className="flex items-center justify-center min-h-[40vh]">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+              </div>
+            ) : (
+              story.map((sentence, index) => (
+                <p key={index} className="animate-in fade-in duration-1000">
+                  {sentence}
+                </p>
+              ))
+            )}
+            <div ref={storyEndRef} />
+          </div>
+        )}
       </main>
 
       <div className="flex-shrink-0 border-t border-border/20 px-4 sm:px-8 py-4 bg-background">
@@ -256,11 +277,11 @@ export function StoryWriter() {
                 onChange={(e) => setWord(e.target.value.split(' ')[0])}
                 placeholder="Offer a single word..."
                 className="flex-grow text-base bg-transparent border-0 border-b rounded-none border-border/50 focus-visible:ring-0 focus-visible:ring-offset-0 focus:border-primary transition-colors"
-                disabled={isLoading}
+                disabled={isGenerating || appStatus !== 'ready'}
                 required
               />
               <div className="flex w-full sm:w-auto gap-4">
-                <Select value={mood} onValueChange={(value: Mood) => setMood(value)} disabled={isLoading}>
+                <Select value={mood} onValueChange={(value: Mood) => setMood(value)} disabled={isGenerating || appStatus !== 'ready'}>
                   <SelectTrigger id="moodSelector" className="w-full sm:w-[180px]">
                     <SelectValue placeholder="Select mood" />
                   </SelectTrigger>
@@ -270,8 +291,8 @@ export function StoryWriter() {
                     <SelectItem value="Motivational">Motivational</SelectItem>
                   </SelectContent>
                 </Select>
-                <Button id="submitWord" type="submit" className="w-full sm:w-auto" disabled={isLoading || !word.trim()}>
-                  {isLoading && story.length > 0 ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles />}
+                <Button id="submitWord" type="submit" className="w-full sm:w-auto" disabled={isGenerating || appStatus !== 'ready' || !word.trim()}>
+                  {isGenerating && story.length > 0 ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles />}
                   Continue
                 </Button>
               </div>
@@ -279,10 +300,10 @@ export function StoryWriter() {
           </form>
 
           <footer className="flex gap-4 justify-center items-center pt-4">
-            <Button id="saveStory" variant="ghost" size="sm" onClick={handleSave}>
+            <Button id="saveStory" variant="ghost" size="sm" onClick={handleSave} disabled={appStatus !== 'ready'}>
               <Save className="mr-2 h-4 w-4" /> Save
             </Button>
-            <Button id="exportStory" variant="ghost" size="sm" onClick={handleExport}>
+            <Button id="exportStory" variant="ghost" size="sm" onClick={handleExport} disabled={appStatus !== 'ready'}>
               <Download className="mr-2 h-4 w-4" /> Export
             </Button>
           </footer>
@@ -291,3 +312,5 @@ export function StoryWriter() {
     </div>
   );
 }
+
+    
