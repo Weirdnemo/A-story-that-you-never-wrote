@@ -10,8 +10,8 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        body: ['Source Code Pro', 'monospace'],
-        headline: ['Source Code Pro', 'monospace'],
+        body: ['"EB Garamond"', 'serif'],
+        headline: ['"EB Garamond"', 'serif'],
         code: ['Source Code Pro', 'monospace'],
       },
       colors: {
