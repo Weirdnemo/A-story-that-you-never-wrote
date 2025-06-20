@@ -7,18 +7,8 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { generateNextSentence } from '@/ai/flows/generate-next-sentence';
 import type { GenerateNextSentenceInput } from '@/ai/flows/generate-next-sentence';
-import { Save, Download, Loader2, Sparkles, Settings, KeyRound } from 'lucide-react';
+import { Save, Download, Loader2, Sparkles } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
 
 type Mood = 'Dreamy' | 'Dark' | 'Motivational';
 
@@ -27,10 +17,6 @@ export function StoryWriter() {
   const [word, setWord] = useState('');
   const [mood, setMood] = useState<Mood>('Dreamy');
   const [isGenerating, setIsGenerating] = useState(false);
-  const [appStatus, setAppStatus] = useState<'loading' | 'needs_key' | 'ready'>('loading');
-  const [apiKey, setApiKey] = useState('');
-  const [isApiDialogOpen, setIsApiDialogOpen] = useState(false);
-  const [tempApiKey, setTempApiKey] = useState('');
 
   const storyEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
@@ -39,23 +25,8 @@ export function StoryWriter() {
     storyEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
-  // On mount, check for API key and set initial status
+  // Fetch initial sentence on mount
   useEffect(() => {
-    const storedApiKey = localStorage.getItem('user-api-key') || '';
-    setTempApiKey(storedApiKey);
-    if (storedApiKey) {
-      setApiKey(storedApiKey);
-      setAppStatus('ready');
-    } else {
-      setAppStatus('needs_key');
-      setIsApiDialogOpen(true);
-    }
-  }, []);
-
-  // Fetch initial sentence when app is ready
-  useEffect(() => {
-    if (appStatus !== 'ready' || story.length > 0 || !apiKey) return;
-
     const getInitialSentence = async () => {
         setIsGenerating(true);
         try {
@@ -63,20 +34,17 @@ export function StoryWriter() {
                 word: 'once upon a time',
                 storySoFar: '',
                 mood: 'Dreamy',
-                apiKey: apiKey,
             };
             const result = await generateNextSentence(input);
             if (result.nextSentence) {
                 setStory([result.nextSentence]);
             }
-        } catch (err) {
+        } catch (err: any) {
             toast({
               variant: "destructive",
               title: "Failed to start the story",
-              description: "There was a problem with the AI. Your API key might be invalid. Please check it and try again.",
+              description: err.message || "There was a problem with the AI. Please ensure your API key is configured correctly in the environment.",
             });
-            setAppStatus('needs_key'); // Revert status if key is bad
-            setIsApiDialogOpen(true);
             console.error(err);
         } finally {
             setIsGenerating(false);
@@ -85,7 +53,7 @@ export function StoryWriter() {
     
     getInitialSentence();
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [appStatus, apiKey]);
+  }, []);
 
   useEffect(() => {
     if (story.length > 1) {
@@ -96,16 +64,6 @@ export function StoryWriter() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!word.trim() || isGenerating) return;
-    
-    if (appStatus === 'needs_key' || !apiKey) {
-      toast({
-          variant: "destructive",
-          title: "API Key Missing",
-          description: "Please enter your API key in the settings before continuing.",
-      });
-      setIsApiDialogOpen(true);
-      return;
-    }
 
     setIsGenerating(true);
     const currentStory = story.join(' ');
@@ -115,18 +73,17 @@ export function StoryWriter() {
             word,
             storySoFar: currentStory,
             mood,
-            apiKey: apiKey,
         };
         const result = await generateNextSentence(input);
         if (result.nextSentence) {
             setStory(prev => [...prev, result.nextSentence]);
             setWord('');
         }
-    } catch (err) {
+    } catch (err: any) {
         toast({
           variant: "destructive",
           title: "Failed to continue the story",
-          description: "There was a problem with the AI. Please check your API key and try again.",
+          description: err.message || "There was a problem with the AI. Please check your configuration and try again.",
         })
         console.error(err);
     } finally {
@@ -166,26 +123,6 @@ export function StoryWriter() {
     });
   };
 
-  const handleSaveApiKey = () => {
-    if (tempApiKey) {
-        setApiKey(tempApiKey);
-        localStorage.setItem('user-api-key', tempApiKey);
-        setIsApiDialogOpen(false);
-        setAppStatus('ready');
-        setStory([]); // Clear story to trigger re-fetch of initial sentence
-        toast({
-          title: "API Key Saved",
-          description: "Your API key has been saved. Starting a new story...",
-        });
-    } else {
-        toast({
-            variant: "destructive",
-            title: "API Key Empty",
-            description: "Please enter a valid API key.",
-        });
-    }
-  };
-
   return (
     <div className="flex flex-col h-screen bg-background text-foreground font-body">
       <header className="flex-shrink-0 border-b border-border/20 px-6 sm:px-8 py-4 flex justify-between items-center">
@@ -193,77 +130,23 @@ export function StoryWriter() {
           <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground/90">The story you never wrote</h1>
           <h2 className="text-sm text-muted-foreground italic mt-1">I already started writing for you...</h2>
         </div>
-        <Dialog open={isApiDialogOpen} onOpenChange={setIsApiDialogOpen}>
-            <DialogTrigger asChild>
-                <Button variant="ghost" size="icon">
-                    <Settings className="h-5 w-5" />
-                    <span className="sr-only">API Key Settings</span>
-                </Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-[425px]">
-                <DialogHeader>
-                    <DialogTitle>API Key Configuration</DialogTitle>
-                    <DialogDescription>
-                        Enter your Google AI API key here. It will be saved in your browser's local storage and will not be stored on our servers.
-                    </DialogDescription>
-                </DialogHeader>
-                <div className="grid gap-4 py-4">
-                    <div className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="apiKeyInput" className="text-right">
-                            API Key
-                        </Label>
-                        <Input
-                            id="apiKeyInput"
-                            type="password"
-                            value={tempApiKey}
-                            onChange={(e) => setTempApiKey(e.target.value)}
-                            className="col-span-3"
-                            placeholder="Your Google AI API Key"
-                        />
-                    </div>
-                </div>
-                <DialogFooter>
-                    <Button type="submit" onClick={handleSaveApiKey}>Save key</Button>
-                </DialogFooter>
-            </DialogContent>
-        </Dialog>
       </header>
 
       <main className="flex-grow w-full max-w-4xl mx-auto px-4 sm:px-8 py-12 overflow-y-auto">
-        {appStatus === 'loading' && (
-             <div className="flex items-center justify-center min-h-[40vh]">
+        <div id="story-output" className="w-full space-y-6 text-lg/relaxed tracking-wide">
+          {isGenerating && story.length === 0 ? (
+            <div className="flex items-center justify-center min-h-[40vh]">
               <Loader2 className="h-8 w-8 animate-spin text-primary" />
             </div>
-        )}
-        {appStatus === 'needs_key' && (
-            <div className="flex flex-col items-center justify-center min-h-[40vh] text-center">
-                <KeyRound className="h-12 w-12 text-muted-foreground mb-4" />
-                <h3 className="text-xl font-semibold mb-2">API Key Required</h3>
-                <p className="text-muted-foreground max-w-md">
-                    To begin your creative journey, please provide your Google AI API key.
-                </p>
-                <Button onClick={() => setIsApiDialogOpen(true)} className="mt-6">
-                    <Settings className="mr-2 h-4 w-4" />
-                    Open Settings
-                </Button>
-            </div>
-        )}
-        {appStatus === 'ready' && (
-          <div id="story-output" className="w-full space-y-6 text-lg/relaxed tracking-wide">
-            {isGenerating && story.length === 0 ? (
-              <div className="flex items-center justify-center min-h-[40vh]">
-                <Loader2 className="h-8 w-8 animate-spin text-primary" />
-              </div>
-            ) : (
-              story.map((sentence, index) => (
-                <p key={index} className="animate-in fade-in duration-1000">
-                  {sentence}
-                </p>
-              ))
-            )}
-            <div ref={storyEndRef} />
-          </div>
-        )}
+          ) : (
+            story.map((sentence, index) => (
+              <p key={index} className="animate-in fade-in duration-1000">
+                {sentence}
+              </p>
+            ))
+          )}
+          <div ref={storyEndRef} />
+        </div>
       </main>
 
       <div className="flex-shrink-0 border-t border-border/20 px-4 sm:px-8 py-4 bg-background">
@@ -277,11 +160,11 @@ export function StoryWriter() {
                 onChange={(e) => setWord(e.target.value.split(' ')[0])}
                 placeholder="Offer a single word..."
                 className="flex-grow text-base bg-transparent border-0 border-b rounded-none border-border/50 focus-visible:ring-0 focus-visible:ring-offset-0 focus:border-primary transition-colors"
-                disabled={isGenerating || appStatus !== 'ready'}
+                disabled={isGenerating}
                 required
               />
               <div className="flex w-full sm:w-auto gap-4">
-                <Select value={mood} onValueChange={(value: Mood) => setMood(value)} disabled={isGenerating || appStatus !== 'ready'}>
+                <Select value={mood} onValueChange={(value: Mood) => setMood(value)} disabled={isGenerating}>
                   <SelectTrigger id="moodSelector" className="w-full sm:w-[180px]">
                     <SelectValue placeholder="Select mood" />
                   </SelectTrigger>
@@ -291,7 +174,7 @@ export function StoryWriter() {
                     <SelectItem value="Motivational">Motivational</SelectItem>
                   </SelectContent>
                 </Select>
-                <Button id="submitWord" type="submit" className="w-full sm:w-auto" disabled={isGenerating || appStatus !== 'ready' || !word.trim()}>
+                <Button id="submitWord" type="submit" className="w-full sm:w-auto" disabled={isGenerating || !word.trim()}>
                   {isGenerating && story.length > 0 ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles />}
                   Continue
                 </Button>
@@ -300,10 +183,10 @@ export function StoryWriter() {
           </form>
 
           <footer className="flex gap-4 justify-center items-center pt-4">
-            <Button id="saveStory" variant="ghost" size="sm" onClick={handleSave} disabled={appStatus !== 'ready'}>
+            <Button id="saveStory" variant="ghost" size="sm" onClick={handleSave} disabled={isGenerating}>
               <Save className="mr-2 h-4 w-4" /> Save
             </Button>
-            <Button id="exportStory" variant="ghost" size="sm" onClick={handleExport} disabled={appStatus !== 'ready'}>
+            <Button id="exportStory" variant="ghost" size="sm" onClick={handleExport} disabled={isGenerating}>
               <Download className="mr-2 h-4 w-4" /> Export
             </Button>
           </footer>
