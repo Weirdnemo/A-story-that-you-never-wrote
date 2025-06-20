@@ -191,7 +191,7 @@ export function StoryWriter() {
       <header className="flex-shrink-0 border-b border-border/20 px-6 sm:px-8 py-4 flex justify-between items-center">
         <div>
           <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground/90">The story you never wrote</h1>
-          <h2 className="text-sm text-muted-foreground italic mt-1">An eternal collaboration</h2>
+          <h2 className="text-sm text-muted-foreground italic mt-1">I already started writing for you...</h2>
         </div>
         <Dialog open={isApiDialogOpen} onOpenChange={setIsApiDialogOpen}>
             <DialogTrigger asChild>
@@ -312,5 +312,3 @@ export function StoryWriter() {
     </div>
   );
 }
-
-    
