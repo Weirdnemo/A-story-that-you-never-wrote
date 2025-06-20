@@ -29,26 +29,24 @@ export function StoryWriter() {
   useEffect(() => {
     const getInitialSentence = async () => {
         setIsGenerating(true);
-        try {
-            const input: GenerateNextSentenceInput = {
-                word: 'once upon a time',
-                storySoFar: '',
-                mood: 'Dreamy',
-            };
-            const result = await generateNextSentence(input);
-            if (result.nextSentence) {
-                setStory([result.nextSentence]);
-            }
-        } catch (err: any) {
+        const input: GenerateNextSentenceInput = {
+            word: 'once upon a time',
+            storySoFar: '',
+            mood: 'Dreamy',
+        };
+        const result = await generateNextSentence(input);
+        
+        if (result.error) {
             toast({
               variant: "destructive",
               title: "Failed to start the story",
-              description: err.message || "There was a problem with the AI. Please ensure your API key is configured correctly in the environment.",
+              description: result.error,
             });
-            console.error(err);
-        } finally {
-            setIsGenerating(false);
+            console.error(result.error);
+        } else if (result.nextSentence) {
+            setStory([result.nextSentence]);
         }
+        setIsGenerating(false);
     };
     
     getInitialSentence();
@@ -68,27 +66,26 @@ export function StoryWriter() {
     setIsGenerating(true);
     const currentStory = story.join(' ');
 
-    try {
-        const input: GenerateNextSentenceInput = {
-            word,
-            storySoFar: currentStory,
-            mood,
-        };
-        const result = await generateNextSentence(input);
-        if (result.nextSentence) {
-            setStory(prev => [...prev, result.nextSentence]);
-            setWord('');
-        }
-    } catch (err: any) {
+    const input: GenerateNextSentenceInput = {
+        word,
+        storySoFar: currentStory,
+        mood,
+    };
+    const result = await generateNextSentence(input);
+
+    if (result.error) {
         toast({
           variant: "destructive",
           title: "Failed to continue the story",
-          description: err.message || "There was a problem with the AI. Please check your configuration and try again.",
+          description: result.error,
         })
-        console.error(err);
-    } finally {
-        setIsGenerating(false);
+        console.error(result.error);
+    } else if (result.nextSentence) {
+        setStory(prev => [...prev, result.nextSentence]);
+        setWord('');
     }
+    
+    setIsGenerating(false);
   };
 
   const handleSave = () => {

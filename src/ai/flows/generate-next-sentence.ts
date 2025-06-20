@@ -4,7 +4,7 @@
  * @fileOverview A flow to generate the next sentence in a story based on a word, story so far, and mood.
  *
  * - generateNextSentence - A function that generates the next sentence of the story.
- * - GenerateNextSentenceInput - The input type for the generateNextSentence function.
+ * - GenerateNextSentenceInput - The input type for the generateNextsentence function.
  * - GenerateNextSentenceOutput - The return type for the generateNextSentence function.
  */
 
@@ -23,8 +23,28 @@ const GenerateNextSentenceOutputSchema = z.object({
 });
 export type GenerateNextSentenceOutput = z.infer<typeof GenerateNextSentenceOutputSchema>;
 
-export async function generateNextSentence(input: GenerateNextSentenceInput): Promise<GenerateNextSentenceOutput> {
-  return generateNextSentenceFlow(input);
+export async function generateNextSentence(
+  input: GenerateNextSentenceInput
+): Promise<GenerateNextSentenceOutput & { error?: string }> {
+  try {
+    const result = await generateNextSentenceFlow(input);
+    return result;
+  } catch (e: any) {
+    console.error(`Error in generateNextSentenceFlow: ${e.message}`);
+    
+    // Check for both the manual check error and the library's error.
+    if (e.message?.toLowerCase().includes('api key')) {
+      return { 
+        nextSentence: '', 
+        error: "Your Google API Key is either missing or invalid. Please ensure it is set correctly in the Vercel project's environment variables."
+      };
+    }
+
+    return { 
+      nextSentence: '', 
+      error: "An unexpected error occurred while generating the story." 
+    };
+  }
 }
 
 const prompt = ai.definePrompt({
