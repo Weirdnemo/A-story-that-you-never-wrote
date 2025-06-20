@@ -1,12 +1,12 @@
 import type {Metadata} from 'next';
 import './globals.css';
 import { Toaster } from "@/components/ui/toaster"
-import { Source_Code_Pro } from 'next/font/google';
+import { Lora } from 'next/font/google';
 
-const sourceCodePro = Source_Code_Pro({
+const lora = Lora({
   subsets: ['latin'],
   display: 'swap',
-  variable: '--font-source-code-pro',
+  variable: '--font-lora',
 });
 
 export const metadata: Metadata = {
@@ -20,7 +20,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`dark ${sourceCodePro.variable}`}>
+    <html lang="en" className={`dark ${lora.variable}`}>
       <head />
       <body className="font-body antialiased">
         {children}
