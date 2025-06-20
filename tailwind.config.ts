@@ -12,6 +12,7 @@ export default {
       fontFamily: {
         body: ['"EB Garamond"', 'serif'],
         headline: ['"EB Garamond"', 'serif'],
+        'playfair-display': ['"Playfair Display"', 'serif'],
         code: ['Source Code Pro', 'monospace'],
       },
       colors: {

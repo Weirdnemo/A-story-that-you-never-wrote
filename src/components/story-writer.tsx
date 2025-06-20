@@ -121,13 +121,13 @@ export function StoryWriter() {
   };
 
   return (
-    <div className="flex flex-col h-screen bg-background text-foreground p-4 sm:p-6 md:p-8 font-serif">
-      <header className="text-center mb-4 md:mb-8 border-b-2 border-primary/20 pb-4">
+    <div className="flex flex-col h-screen bg-background text-foreground font-body">
+      <header className="text-center shrink-0 px-4 sm:px-6 md:px-8 pt-4 sm:pt-6 md:pt-8 mb-4 md:mb-8 border-b-2 border-primary/20 pb-4">
         <h1 className="text-5xl font-playfair-display font-bold text-primary tracking-wider">The story you never wrote</h1>
         <h2 className="text-lg text-muted-foreground mt-2 italic">The story unfolds...</h2>
       </header>
 
-      <main className="flex-grow flex flex-col items-center w-full max-w-4xl mx-auto min-h-0">
+      <main className="flex-grow flex flex-col items-center w-full max-w-4xl mx-auto min-h-0 px-4 sm:px-6 md:px-8 pb-4 sm:pb-6 md:pb-8">
         <div id="story-output" className="w-full flex-grow relative mb-6 rounded-lg border border-border bg-secondary/50 shadow-lg">
           <ScrollArea className="absolute inset-0">
             <div className="p-6 md:p-8">
@@ -147,7 +147,7 @@ export function StoryWriter() {
           </ScrollArea>
         </div>
 
-        <form onSubmit={handleSubmit} className="w-full space-y-4">
+        <form onSubmit={handleSubmit} className="w-full space-y-4 shrink-0">
           <div className="flex flex-col sm:flex-row gap-4">
             <Input
               id="wordInput"
@@ -176,7 +176,7 @@ export function StoryWriter() {
           </div>
         </form>
 
-        <footer className="mt-8 flex gap-4">
+        <footer className="mt-8 flex gap-4 shrink-0">
           <Button id="saveStory" variant="outline" onClick={handleSave}>
             <Save className="mr-2 h-4 w-4" /> Save Chapter
           </Button>
