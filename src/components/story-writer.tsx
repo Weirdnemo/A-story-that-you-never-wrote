@@ -120,13 +120,13 @@ export function StoryWriter() {
   };
 
   return (
-    <div className="min-h-screen bg-background text-foreground font-body">
+    <div className="flex flex-col h-screen bg-background text-foreground font-body">
       <header className="flex-shrink-0 border-b border-border/20 px-6 sm:px-8 py-4">
         <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground/90">The story you never wrote</h1>
         <h2 className="text-sm text-muted-foreground italic mt-1">An eternal collaboration</h2>
       </header>
 
-      <main className="w-full max-w-4xl mx-auto px-4 sm:px-8 py-12">
+      <main className="flex-grow w-full max-w-4xl mx-auto px-4 sm:px-8 py-12 overflow-y-auto">
         <div id="story-output" className="w-full space-y-6 text-lg/relaxed tracking-wide">
           {isLoading && story.length === 0 ? (
             <div className="flex items-center justify-center min-h-[40vh]">
@@ -141,8 +141,10 @@ export function StoryWriter() {
           )}
           <div ref={storyEndRef} />
         </div>
+      </main>
 
-        <div className="space-y-4 pt-12">
+      <div className="flex-shrink-0 border-t border-border/20 px-4 sm:px-8 py-4 bg-background">
+        <div className="w-full max-w-4xl mx-auto">
           <form onSubmit={handleSubmit} className="w-full space-y-4">
             <div className="flex flex-col sm:flex-row gap-4 items-center">
               <Input
@@ -174,7 +176,7 @@ export function StoryWriter() {
             </div>
           </form>
 
-          <footer className="flex gap-4 justify-center items-center pt-2">
+          <footer className="flex gap-4 justify-center items-center pt-4">
             <Button id="saveStory" variant="ghost" size="sm" onClick={handleSave}>
               <Save className="mr-2 h-4 w-4" /> Save
             </Button>
@@ -183,7 +185,7 @@ export function StoryWriter() {
             </Button>
           </footer>
         </div>
-      </main>
+      </div>
     </div>
   );
 }
