@@ -10,9 +10,9 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        body: ['"EB Garamond"', 'serif'],
-        headline: ['"EB Garamond"', 'serif'],
-        code: ['Source Code Pro', 'monospace'],
+        body: ['var(--font-garamond)', 'serif'],
+        headline: ['var(--font-garamond)', 'serif'],
+        code: ['var(--font-source-code-pro)', 'monospace'],
       },
       colors: {
         background: 'hsl(var(--background))',
